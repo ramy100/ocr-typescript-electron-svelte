@@ -1,30 +1,35 @@
 <script lang="ts">
-	export let name: string;
+import Tools from "./Containers/Tools/Tools.svelte";
+import { Router, Route, Link } from "svelte-navigator";
+import ConverToImage from "./Containers/ConvertToImages/ConverToImage.svelte";
+import Ocr from "./Containers/Ocr/Ocr.svelte";
+import Home from './Containers/Home/Home.svelte'
 </script>
 
 <main>
-	<h1>Hello ramy {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<Router>
+		<Route path="/">
+			<Home/>
+		</Route>
+		<Route path="converttoImage">
+			<ConverToImage/>
+		</Route>
+		<Route path="ocr">
+			<Ocr/>
+		</Route>
+	</Router>
 </main>
 
 <style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
+:global(*){
+	margin:0;
+	padding:0;
+	box-sizing: border-box;
+}
+:global(html,body){
+	height: 100%;
+}
+main{
+	height: 100%;
+}
 </style>

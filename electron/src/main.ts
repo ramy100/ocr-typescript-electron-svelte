@@ -1,11 +1,17 @@
-require('electron-reloader')(module);
 import { app, BrowserWindow } from 'electron';
-import path from 'path';
+require('electron-reloader')(module);
+require('@electron/remote/main').initialize();
 
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
     height: 900,
+    webPreferences: {
+      enableRemoteModule: true,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    icon: '../../public/favicon.png',
   });
   win.loadURL('http://localhost:5000');
   win.webContents.openDevTools();
@@ -13,7 +19,6 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
