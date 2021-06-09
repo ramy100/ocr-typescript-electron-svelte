@@ -1,11 +1,11 @@
 import { app, BrowserWindow } from 'electron';
-require('electron-reloader')(module);
 require('@electron/remote/main').initialize();
-
+import path from 'path';
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
-    height: 900,
+    height: 800,
+    resizable: false,
     webPreferences: {
       enableRemoteModule: true,
       nodeIntegration: true,
@@ -13,7 +13,7 @@ const createWindow = () => {
     },
     icon: '../../public/favicon.png',
   });
-  win.loadURL('http://localhost:5000');
+  win.loadFile(path.join(__dirname, '../../public/index.html'));
   win.webContents.openDevTools();
 };
 

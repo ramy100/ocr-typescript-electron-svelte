@@ -1,21 +1,24 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
-require('electron-reloader')(module);
 require('@electron/remote/main').initialize();
+var path_1 = __importDefault(require("path"));
 var createWindow = function () {
     var win = new electron_1.BrowserWindow({
         width: 800,
-        height: 900,
+        height: 800,
+        resizable: false,
         webPreferences: {
             enableRemoteModule: true,
             nodeIntegration: true,
             contextIsolation: false,
-            // preload: path.join(__dirname, 'preload.js'),
         },
         icon: '../../public/favicon.png',
     });
-    win.loadURL('http://localhost:5000');
+    win.loadFile(path_1.default.join(__dirname, '../../public/index.html'));
     win.webContents.openDevTools();
 };
 electron_1.app.whenReady().then(function () {

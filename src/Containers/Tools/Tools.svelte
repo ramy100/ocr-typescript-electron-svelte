@@ -1,31 +1,22 @@
+<style>
+main {
+  height: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+</style>
+
 <script lang="ts">
 import { Link } from "svelte-navigator";
 import Box from "../../Components/Box/Box.svelte";
-
-
 </script>
-<main>
-    <div class="container">
-        <Link to="converttoImage">
-            <Box></Box>
-        </Link>
-        <Link to="ocr">
-            <Box></Box>
-        </Link>
-    </div>
-</main>
 
-<style>
-    .container{
-        display: grid;
-        justify-content: center;
-        gap: 40px;
-        grid-template-columns: repeat(3,1fr);
-    }
-    main{
-        height: 100%;
-        display: flex;
-        justify-content: space-evenly;
-        align-items: center;
-    }
-</style>
+<main>
+  <Link to="converttoImage">
+    <Box><h4>pdf to images</h4></Box>
+  </Link>
+  <Link to="ocr">
+    <Box><h4>images to text</h4></Box>
+  </Link>
+</main>
