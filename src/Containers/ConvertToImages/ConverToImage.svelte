@@ -54,7 +54,6 @@ main {
 const electron = require("electron").remote;
 const pdf = require("pdf-poppler");
 import { onMount } from "svelte";
-import { Link } from "svelte-navigator";
 let pdfFile;
 let distenation;
 let el;
@@ -138,6 +137,6 @@ const convert = () => {
   {/if}
   <button class="convert" on:click|preventDefault="{convert}">Convert</button>
   <div class="back">
-    <Link to="/"><h3>Back</h3></Link>
+    <a href="#/"><h3>Back</h3></a>
   </div>
 </main>

@@ -8,15 +8,14 @@ main {
 </style>
 
 <script lang="ts">
-import { Link } from "svelte-navigator";
 import Box from "../../Components/Box/Box.svelte";
 </script>
 
 <main>
-  <Link to="converttoImage">
+  <a href="#/converttoimage" >
     <Box><h4>pdf to images</h4></Box>
-  </Link>
-  <Link to="ocr">
+  </a>
+  <a href="#/ocr">
     <Box><h4>images to text</h4></Box>
-  </Link>
+  </a>
 </main>

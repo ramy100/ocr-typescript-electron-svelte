@@ -65,7 +65,6 @@ h1 {
 </style>
 
 <script>
-import { Link } from "svelte-navigator";
 import ProgressBar from "../../Components/ProgressBar/ProgressBar.svelte";
 const electron = require("electron").remote;
 const { app } = require("@electron/remote");
@@ -198,6 +197,6 @@ const runOcr = async () => {
     </div>
   {/if}
   <div class="back">
-    <Link to="/"><h3>Back</h3></Link>
+    <a href="#/"><h3>Back</h3></a>
   </div>
 </main>

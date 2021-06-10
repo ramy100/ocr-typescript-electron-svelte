@@ -13,23 +13,18 @@ main {
 </style>
 
 <script lang="ts">
-import Tools from "./Containers/Tools/Tools.svelte";
-import { Router, Route, Link } from "svelte-navigator";
+import Home from "./Containers/Home/Home.svelte";
+import Router from 'svelte-spa-router'
 import ConverToImage from "./Containers/ConvertToImages/ConverToImage.svelte";
 import Ocr from "./Containers/Ocr/Ocr.svelte";
-import Home from "./Containers/Home/Home.svelte";
+
+const routes = {
+    '/': Home,
+    "/converttoimage":ConverToImage,
+    "/ocr":Ocr
+}
 </script>
 
 <main>
-  <Router>
-    <Route path="/">
-      <Home />
-    </Route>
-    <Route path="converttoImage">
-      <ConverToImage />
-    </Route>
-    <Route path="ocr">
-      <Ocr />
-    </Route>
-  </Router>
+  <Router routes={routes} />
 </main>

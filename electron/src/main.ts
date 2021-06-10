@@ -14,7 +14,6 @@ const createWindow = () => {
     icon: '../../public/favicon.png',
   });
   win.loadFile(path.join(__dirname, '../../public/index.html'));
-  win.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {
