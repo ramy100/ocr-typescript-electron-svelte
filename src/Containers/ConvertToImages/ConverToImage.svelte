@@ -1,11 +1,6 @@
 <style>
-.drop-here {
-  border: 2px solid black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  grid-area: d;
+.select-file {
+  grid-area: f;
 }
 .head {
   grid-area: h;
@@ -37,11 +32,8 @@ main {
   justify-content: center;
   grid-template-areas:
     "h h h h h h"
-    "d d d d d d"
-    "d d d d d d"
-    "d d d d d d"
-    "d d d d d d"
-    "sf sf sf c c c"
+    "f f f sf sf sf"
+    "c c c c c c"
     "fl fl fl fl fl fl"
     "fo fo fo fo fo fo"
     "b b b b b b";
@@ -74,25 +66,20 @@ const changeDir = async (e) => {
   distenation = res.filePaths[0];
 };
 
-const dropped = (e) => {
+const changeFile = async() => {
   try {
-    const item = e.dataTransfer.items[0];
-    if (item && item.kind == "file") {
-      pdfFile = item.getAsFile();
-    }
-    el.style.backgroundColor = "white";
+    const res = await electron.dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "file to convert", extensions: ["pdf",] }],
+    });
+    if (res.filePaths.length) pdfFile = res.filePaths[0];
   } catch (error) {
-    console.log("error");
+    pdfFile = undefined;
+    console.log(error);
   }
 };
 
-const dragOver = (e) => {
-  el.style.backgroundColor = "grey";
-};
 
-const dragLeave = (e) => {
-  el.style.backgroundColor = "white";
-};
 
 const convert = () => {
   if (!pdfFile || !distenation)
@@ -101,14 +88,18 @@ const convert = () => {
       message: "Make sure to select the pdf file and the output folder first",
       type: "warning",
     });
-  else {
-    pdf
-      .convert(pdfFile.path, opts)
+    else {
+      pdf
+      .convert(pdfFile, opts)
       .then((res) => {
-        console.log("Successfully converted");
+        electron.dialog.showMessageBox({
+          title: "success",
+          message: "successfully converted pdf to image",
+          type: "info",
+        });
       })
       .catch((error) => {
-        console.error(error);
+        electron.dialog.showErrorBox("error",error)
       });
   }
 };
@@ -118,16 +109,15 @@ const convert = () => {
   <h1 class="head">Convert PDF to Images</h1>
   <button class="select-folder" on:click|preventDefault="{changeDir}"
     >Select folder</button>
-  <div
-    class="drop-here"
-    on:drop|preventDefault="{dropped}"
-    on:dragover|preventDefault="{dragOver}"
-    on:dragleave|preventDefault="{dragLeave}">
-    drop here
-  </div>
+  <button
+    class="select-file"
+    on:click|preventDefault={changeFile}
+    >
+    Select PDF file
+  </button>
   {#if pdfFile}
     <div class="file">
-      <h4>File : {pdfFile.name}</h4>
+      <h4>File : {pdfFile}</h4>
     </div>
   {/if}
   {#if distenation}
