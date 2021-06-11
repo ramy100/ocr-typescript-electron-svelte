@@ -1,4 +1,4 @@
-<style lang="scss">
+<style>
 .bar {
   height: 80px;
   border: 1px solid black;

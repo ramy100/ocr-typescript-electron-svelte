@@ -1,4 +1,4 @@
-<style lang="scss">
+<style >
 main {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -31,14 +31,14 @@ h1 {
   display: grid;
   grid-template-columns: 1fr;
   justify-content: center;
-  .files {
+}
+  .details > .files {
     display: grid;
     grid-template-columns: 1fr;
     text-align: center;
     gap: 5px;
     color: lightslategrey;
   }
-}
 .pages-converted {
   grid-row: 6/6;
   text-align: center;
@@ -51,12 +51,12 @@ h1 {
   text-align: center;
   gap: 5px;
   position: relative;
-  h3 {
-    color: rgb(117, 29, 2);
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 100%);
-  }
+}
+.status {
+  color: rgb(117, 29, 2);
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 100%);
 }
 .back {
   grid-row: 8/8;
@@ -119,10 +119,11 @@ const runOcr = async () => {
     try {
       const worker = createWorker({
         logger,
-        cachePath: path.join(app.getAppPath(), "..", ".lang-data"),
+        // cachePath: path.join(app.getAppPath(), "..", ".lang-data"),
       });
       await worker.load();
-      await worker.loadLanguage("ara+eng");
+      // await worker.loadLanguage("ara+eng");
+      await worker.loadLanguage("ara");
       await worker.initialize("ara");
       converting = true;
       page = 0;
@@ -192,7 +193,7 @@ const runOcr = async () => {
     </h2>
     <div class="progress">
       <ProgressBar value="{progress * 100}">
-        <h3>{status}</h3>
+        <h3 class="status">{status}</h3>
       </ProgressBar>
     </div>
   {/if}
