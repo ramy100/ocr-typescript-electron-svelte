@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 require('@electron/remote/main').initialize();
+// require('electron-reloader')(module);
+
 import path from 'path';
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -13,8 +15,9 @@ const createWindow = () => {
     },
     icon: '../../public/favicon.png',
   });
-  win.loadFile(path.join(__dirname, '../../public/index.html'));
-  // win.webContents.openDevTools();
+  // win.loadFile(path.join(__dirname, '../../public/index.html'));
+  win.loadURL('http://localhost:5000');
+  win.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {
