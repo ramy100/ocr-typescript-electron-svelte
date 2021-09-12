@@ -90,6 +90,9 @@ let page = 1;
 let converting = false;
 let loggers = []
 let pagesToConvert = 0
+let extractedText = {}
+let lastAppended = -1
+let workers = []
 const workersEvents = new EventEmitter();
 
 const chooseFiles = async () => {
@@ -99,11 +102,14 @@ const chooseFiles = async () => {
       filters: [{ name: "images", extensions: ["jpeg", "jpg", "png", "bmp"] }],
     });
     if (res.filePaths.length) {
-      images = res.filePaths
-      pagesToConvert = res.filePaths.length
+      images = res.filePaths.map((v,i)=>
+        ({path:v,pageNum:i})
+      )
+      pagesToConvert = images.length
     };
   } catch (error) {
     images = undefined;
+    pagesToConvert = 0
     console.log(error);
   }
 };
@@ -126,7 +132,6 @@ const chooseDistenation = async () => {
 };
 
 const createWorkers = async (limit)=>{
-  let workers = []
   for (let num = 0; num < limit; num++) {
     loggers[num] = {status:"",progress:""}
     const worker = createWorker({
@@ -141,10 +146,10 @@ const createWorkers = async (limit)=>{
     await worker.initialize("ara");
     workers.push(worker)
   }
-  return workers
+  workers = workers
 }
 
-const terminateWorkers =  (workers)=>{
+const terminateWorkers =  ()=>{
   workers.forEach((worker) => {
     worker.terminate()
   });
@@ -157,8 +162,11 @@ const OnComplete = (err,dontClear) => {
     images = undefined;
   }
   converting = false;
-  page = 0;
+  page = 1;
   pagesToConvert = 0;
+  extractedText = {}
+  lastAppended = -1
+  workers = []
   if(!err) electron.dialog.showMessageBox({
     title: "success",
     message: "Text converted Successfully please check the output file!",
@@ -177,31 +185,49 @@ const appendText = (text)=>{
     fs.appendFile(distenation, text, (err) => {
       if (err) reject(err);
       page++
+      if(pagesToConvert == page){
+        workersEvents.emit("done")
+      }
       resolve(true)
     });
   })
 }
 
 const extractText = async (worker)=>{
-  const image = images.pop()
+  const image = images.shift()
   images=images
   if(!image) return null
-  const {data:{text}} = await worker.recognize(image)
-  return text
+  const {data:{text}} = await worker.recognize(image.path)
+  return {text, pageNum : image.pageNum}
 }
 
 const readAnImage = async (worker)=>{
-  if(!images.length){
-    if(pagesToConvert == page){
-      workersEvents.emit("done")
-      return
-    }
-    return
+  const payload = await extractText(worker)
+  if(payload) {
+    const {text,pageNum} = payload
+    workersEvents.emit("text",{text,pageNum})
+    readAnImage(worker)
   }
-  const text = await extractText(worker)
-  if(text) await appendText(text)
-  readAnImage(worker)
 }
+
+
+workersEvents.on("text",async (payload)=>{
+  if( payload.text ) extractedText[payload.pageNum] = payload.text
+  if(payload.appendThis) await appendText(payload.appendThis)
+  if(extractedText[lastAppended + 1]){
+    const first = extractedText[lastAppended + 1]
+    delete extractedText[lastAppended + 1]
+    console.log(`extractedText ====> `, extractedText)
+    lastAppended++
+    workersEvents.emit("text",{appendThis:first})
+  }
+})
+
+workersEvents.on("done",()=>{
+  OnComplete()
+  terminateWorkers()
+})
+
 
 const runOcr =  async () => {
   if(!images){
@@ -212,12 +238,9 @@ const runOcr =  async () => {
     OnComplete("no output file selected",true)
     return
   }
+
   try {
-    const workers = await createWorkers(limit)
-    workersEvents.on("done",()=>{
-      OnComplete()
-      terminateWorkers(workers)
-    })
+    await createWorkers(limit)
     converting = true;
     page = 0;
     pagesToConvert = images.length
@@ -252,7 +275,7 @@ const runOcr =  async () => {
       <div class="files">
         <h2>Files</h2>
         {#each images as file}
-          <h5>{file}</h5>
+          <h5>{file.path}</h5>
         {/each}
       </div>
     {/if}
