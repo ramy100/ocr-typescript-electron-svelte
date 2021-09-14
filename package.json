@@ -13,8 +13,8 @@
     "svelte:dev": "rollup -c -w",
     "start": "sirv public --no-clear --single",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "dev": "concurrently \"npm run svelte:dev\" \"npm run watch:ts\" \"npm run electron:dev\" ",
-    "electron:dev": "electron ./electron/build/main.js",
+    "dev": "concurrently --names \"watch,electron,svelte\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run watch:ts\" \"npm run electron:dev\"  \"npm run svelte:dev\"   ",
+    "electron:dev": "electron  ./electron/build/main.js",
     "watch:ts": "tsc -p ./electron -w",
     "electron:prod": "electron-builder"
   },
