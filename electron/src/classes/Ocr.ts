@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import { rendererRecieveEvents } from '../Events';
 import { IWorkersManager } from '../interfaces/IWorkersManager';
 import { ImageManager } from './ImagesManager';
 import { OutputManager } from './OutputManager';
@@ -26,7 +27,9 @@ export class Ocr {
   private readAnImage = async (worker: Tesseract.Worker) => {
     const payload = await this.extractText(worker);
     if (payload) {
-      BrowserWindow.getFocusedWindow()?.webContents.send('onePageConverted');
+      BrowserWindow.getAllWindows().forEach((w) => {
+        w.webContents.send(rendererRecieveEvents.ONE_PAGE_CONVERTED);
+      });
       const { text, pageNum } = payload;
       this.outputmanager.recievedText({ text, pageNum });
       await this.readAnImage(worker);

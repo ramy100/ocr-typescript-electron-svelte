@@ -1,10 +1,11 @@
 const { ipcMain } = require('electron');
 import { BrowserWindow } from 'electron';
-import fs from 'fs';
+import fs from 'fs/promises';
+import { mainEvents, rendererRecieveEvents } from '../Events';
 import { WorkersManager } from './Workers';
 export class OutputManager {
   private extractedText: { [property: number]: string } = {};
-  private lastAppendedPage = 0;
+  private nextPageToAppend = 0;
 
   constructor(
     private destination: string,
@@ -17,30 +18,37 @@ export class OutputManager {
     this.recursiveWrite();
   }
 
-  recursiveWrite() {
-    const text = this.extractedText[this.lastAppendedPage];
+  async recursiveWrite() {
+    if (this.lastPage == this.nextPageToAppend) {
+      BrowserWindow.getAllWindows().forEach((w) => {
+        w.webContents.send(rendererRecieveEvents.OCR_DONE);
+      });
+      ipcMain.emit(mainEvents.OCR_DONE);
+      this.workersManager.terminateAll();
+      return;
+    }
+    const text = this.extractedText[this.nextPageToAppend];
     if (text) {
-      this.outPutToFile(text);
-      delete this.extractedText[this.lastAppendedPage];
-      this.lastAppendedPage++;
-      this.recursiveWrite();
+      await this.outPutToFile(text);
+      delete this.extractedText[this.nextPageToAppend];
+      this.nextPageToAppend++;
+      await this.recursiveWrite();
+      return;
     }
   }
 
-  outPutToFile(text: string) {
-    fs.appendFile(
-      this.destination,
-      `${text}\nPage ${this.lastAppendedPage + 1}\n`,
-      (err) => {
-        if (err) console.log(err);
-        if (this.lastPage == this.lastAppendedPage) {
-          ipcMain.emit('ocrDone:main');
-          BrowserWindow.getFocusedWindow()?.webContents.send(
-            'ocrDone:renderer'
-          );
-          this.workersManager.terminateAll();
-        }
-      }
-    );
+  async outPutToFile(text: string) {
+    try {
+      await fs.appendFile(
+        this.destination,
+        `${text}\nPage ${this.nextPageToAppend + 1}\n`
+      );
+
+      return;
+    } catch (error) {
+      console.log(error);
+      this.workersManager.terminateAll();
+      return;
+    }
   }
 }

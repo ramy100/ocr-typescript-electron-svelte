@@ -19,7 +19,7 @@ export const files = {
       console.log(error);
     }
   },
-  chooseDist: async () => {
+  chooseTextFile: async () => {
     let distenation;
     try {
       const res = await dialog.showOpenDialog({
@@ -37,5 +37,25 @@ export const files = {
       console.log(error);
     }
     return distenation;
+  },
+  chooseDirectory: async () => {
+    const res = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
+    return res.filePaths[0];
+  },
+  choosePdfFile: async () => {
+    let pdfFile;
+    try {
+      const res = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'file to convert', extensions: ['pdf'] }],
+      });
+      if (res.filePaths.length) pdfFile = res.filePaths[0];
+    } catch (error) {
+      pdfFile = undefined;
+      console.log(error);
+    }
+    return pdfFile;
   },
 };

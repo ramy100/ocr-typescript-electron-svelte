@@ -77,6 +77,7 @@ h1 {
 
 <script>
 import ProgressBar from "../../Components/ProgressBar/ProgressBar.svelte";
+
 let images;
 let distenation;
 let cores = window.api.numberOfCores()
@@ -86,7 +87,21 @@ let page = 0;
 let converting = false;
 let loggers = []
 let pagesToConvert = 0
-
+window.api.receive("OCRDONE:RENDERER",()=>{
+    reset()
+})
+window.api.receive("ONEPAGECONVERTED",()=>{
+    page++
+})
+window.api.receive("UPDATELOGGERS",(newLoggers)=>{
+    loggers = newLoggers
+})
+const reset = () => {
+  distenation = images = undefined;
+  page = pagesToConvert = 0;
+  converting = false
+  loggers = []
+}
 
 const chooseFiles =  async () => {
   let selectedImages = await window.api.chooseImages()
@@ -95,40 +110,27 @@ const chooseFiles =  async () => {
     pagesToConvert = selectedImages.length
   }
 };
+
 const chooseDistenation = async () => {
-  let selectedDistenation = await window.api.chooseDist()
+  let selectedDistenation = await window.api.chooseTextFile()
   if(selectedDistenation) distenation = selectedDistenation
 };
-const reset = (err,dontClear) => {
-  distenation = undefined;
-  images = undefined;
-  converting = false
-  loggers = []
-  page = 0;
-}
-window.api.receive("ocrDone:renderer",()=>{
-    reset()
-})
-window.api.receive("onePageConverted",()=>{
-    page++
-})
-window.api.receive("updateLoggers",(newLoggers)=>{
-    loggers = newLoggers
-})
+
 const runOcr =  async () => {
   converting = true
-  window.api.send("runOcr",{images,distenation,limit})
+  if(images) {if(images.length < limit) limit = images.length}
+  window.api.send("RUNOCR",{images,distenation,limit})
 };
 
 </script>
 
 <main>
-  <h1>Convert image to text</h1>
+  <h1>Convert image to text{converting}</h1>
   <h2 for="speed">Speed: </h2>
   <div class="recommended">
     <select on:change={(e)=>{limit = e.target.value}}>
       {#each Array(cores) as _, i}
-      <option selected={i+1 === recomended} value={i+1}>{i+1 === recomended ? `${i + 1} Recomended` : i + 1}</option>
+      <option selected={i+1 === limit || i+1 === recomended} value={i+1}>{i+1 === recomended ? `${i + 1} Recomended` : i + 1}</option>
       {/each} 
     </select> 
     <span class="limit-text">{`${limit} images to be converted in parallel`}</span>

@@ -36,72 +36,88 @@ main {
     "c c c c c c"
     "fl fl fl fl fl fl"
     "fo fo fo fo fo fo"
-    "b b b b b b";
+    ". load load load load ."
+    ". load load load load ."
+    ". load load load load ."
+    ". load load load load ."
+    "b b b b b b"
+    ;
   gap: 20px;
   padding: 50px;
 }
+.loader::after{
+  content:" ";
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  border-top: 2px solid lightseagreen;
+  border-right: 2px solid lightseagreen;
+  border-radius: 50%;
+  animation: rotate 1s linear infinite;
+
+}
+
+.loader{
+  grid-area: load;
+  position: relative;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes rotate{
+  0%{transform: rotate(0deg);}
+  100%{transform: rotate(360deg);}
+}
+
 </style>
 
-<script lang="ts">
-const electron = require("electron").remote;
-const pdf = require("pdf-poppler");
-import { onMount } from "svelte";
+<script>
 let pdfFile;
-let distenation;
-let el;
-$: opts = {
-  format: "jpeg",
-  out_dir: distenation,
-  out_prefix: "page",
-};
+let outputDir;
+let page = 0
+let converting = false
+window.api.receive("ONE_IMAGE_CONVERTED",()=>{
+  page++
+})
+window.api.receive("IMAGE_CONVERT_DONE",()=>{
+  reset()
+})
 
-onMount(() => {
-  el = document.querySelector(".drop-here") as HTMLDivElement;
-});
+const reset = ()=>{
+  pdfFile = undefined
+  outputDir = undefined
+  converting=false
+  page = 0
+}
 
 const changeDir = async (e) => {
-  const res = await electron.dialog.showOpenDialog({
-    properties: ["openDirectory"],
-  });
-  distenation = res.filePaths[0];
+  try {
+    const res = await window.api.chooseDirectory()
+    if(res) outputDir = res
+  } catch (error) {
+    outputDir = undefined
+  }
 };
 
 const changeFile = async() => {
   try {
-    const res = await electron.dialog.showOpenDialog({
-      properties: ["openFile"],
-      filters: [{ name: "file to convert", extensions: ["pdf",] }],
-    });
-    if (res.filePaths.length) pdfFile = res.filePaths[0];
+    const res = await window.api.choosePdfFile()
+    if(res) pdfFile = res
   } catch (error) {
     pdfFile = undefined;
-    console.log(error);
   }
 };
 
-
-
-const convert = () => {
-  if (!pdfFile || !distenation)
-    electron.dialog.showMessageBox({
-      title: "missing inputs",
-      message: "Make sure to select the pdf file and the output folder first",
-      type: "warning",
-    });
-    else {
-      pdf
-      .convert(pdfFile, opts)
-      .then((res) => {
-        electron.dialog.showMessageBox({
-          title: "success",
-          message: "successfully converted pdf to image",
-          type: "info",
-        });
-      })
-      .catch((error) => {
-        electron.dialog.showErrorBox("error",error)
-      });
-  }
+const convert = async () => {
+    try {
+      converting = true
+      const res = await window.api.send("RUN_PDF_TO_IMAGES",{pdfFile,outputDir})
+    } catch (error) {
+      console.log(error)
+    }
 };
 </script>
 
@@ -120,12 +136,20 @@ const convert = () => {
       <h4>File : {pdfFile}</h4>
     </div>
   {/if}
-  {#if distenation}
+  {#if outputDir}
     <div class="folder">
-      <h4>Folder : {distenation}</h4>
+      <h4>Folder : {outputDir}</h4>
     </div>
   {/if}
   <button class="convert" on:click|preventDefault="{convert}">Convert</button>
+  {#if converting}
+    <div class="loader">
+      <span class="page">
+        page {page}
+      </span>
+    </div>
+    
+  {/if}
   <div class="back">
     <a href="#/"><h3>Back</h3></a>
   </div>

@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import { rendererRecieveEvents } from '../Events';
 import { ILogger, logger } from '../interfaces/ILogger';
 
 export class Loggers implements ILogger {
@@ -17,10 +18,9 @@ export class Loggers implements ILogger {
 
   updateLogger(index: number, value: logger) {
     this.loggers[index] = value;
-    BrowserWindow.getFocusedWindow()?.webContents.send(
-      'updateLoggers',
-      this.loggers
-    );
+    BrowserWindow.getAllWindows().forEach((w) => {
+      w.webContents.send(rendererRecieveEvents.UPDATE_LOGGERS, this.loggers);
+    });
     return this.loggers[index];
   }
 }
